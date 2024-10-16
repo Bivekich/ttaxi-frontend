@@ -11,13 +11,6 @@ import Home from "./pages/client/Home";
 import TripPage from "./pages/client/TripPage";
 import RideConfirmationPage from "./pages/client/RideConfirmationPage";
 import MyRidesPage from "./pages/client/MyRidesPage";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import DriverDashboard from "./pages/driver/DriverDashboard";
-import Settings from "./pages/admin/Settings";
-import AllRides from "./pages/admin/AllRides";
-import AllRidesDriver from "./pages/driver/AllRidesDriver";
-import HistoryDriver from "./pages/driver/HistoryDriver";
-import Order from "./pages/driver/Order";
 
 const useQuery = () => {
   return new URLSearchParams(useLocation().search);
@@ -27,65 +20,64 @@ const App = () => {
   const [phoneNumber, setPhoneNumber] = useState(
     localStorage.getItem("phoneNumber")
   );
-  // const [userRoles, setUserRoles] = useState(
-  //   JSON.parse(localStorage.getItem("userRoles")) || [] // Загружаем роли из localStorage, если они есть
-  // );
-  const [userRoles, setUserRoles] = useState(
-    [] // Загружаем роли из localStorage, если они есть
-  );
+  const [userRoles, setUserRoles] = useState([]); // Загружаем роли
+  const [loading, setLoading] = useState(true); // Индикатор загрузки данных
   const query = useQuery();
   const navigate = useNavigate();
-  const subdomain = window.location.hostname.split(".")[0]; // Получаем поддомен
 
   useEffect(() => {
     const phoneFromUrl = query.get("phoneNumber");
     if (phoneFromUrl) {
       setPhoneNumber(phoneFromUrl);
       localStorage.setItem("phoneNumber", phoneFromUrl);
-      // localStorage.setItem("userRoles", JSON.stringify(["client"])); // Сохраняем роли в localStorage
     }
 
-    // Если телефон есть, но роли пользователя не сохранены в localStorage, запрашиваем данные о пользователе
+    // Если телефон есть, но роли пользователя не сохранены, запрашиваем данные о пользователе
     const fetchUserProfile = async () => {
       if (phoneNumber && userRoles.length === 0) {
         try {
           const response = await axios.get(
-            `https://api.24t-taxi.ru/api/user/profile/${phoneNumber}`
+            `http://localhost:3000/api/user/profile/${phoneNumber}`
           );
-          console.log(response);
-          const roles = response.data.map((role) => role.type); // Извлекаем роли в массив
+          const roles = response.data.map((role) => role.type); // Извлекаем роли
           setUserRoles(roles); // Сохраняем массив ролей пользователя
-          // localStorage.setItem("userRoles", JSON.stringify(roles)); // Сохраняем роли в localStorage
+          console.log(response);
+          console.log(roles);
         } catch (error) {
           console.error("Ошибка при получении профиля пользователя:", error);
+        } finally {
+          setLoading(false); // Завершаем загрузку после получения данных
         }
+      } else {
+        setLoading(false); // Если телефон не задан, не делаем запрос
       }
     };
 
     if (phoneNumber) {
       fetchUserProfile();
     }
-  }, [query, phoneNumber]);
+  }, [query, phoneNumber, userRoles]);
 
-  // Проверяем, есть ли у пользователя доступ к определенному поддомену
-  const hasAccess = (subdomain, roles) => {
-    if (subdomain === "client" && roles.includes("client")) return true;
-    if (subdomain === "admin" && roles.includes("admin")) return true;
-    if (subdomain === "driver" && roles.includes("driver")) return true;
-    return false;
+  // Проверяем, есть ли у пользователя доступ на основании роли
+  const hasAccess = (roles) => {
+    return roles.includes("client");
   };
 
-  // Если роли пользователя загружены и у него нет доступа, перенаправляем на домашнюю страницу
+  // Если роли загружены и у пользователя нет доступа, перенаправляем на домашнюю страницу
   useEffect(() => {
-    if (userRoles.length > 0 && !hasAccess(subdomain, userRoles)) {
+    if (!loading && userRoles.length > 0 && !hasAccess(userRoles)) {
       navigate("/"); // Перенаправляем пользователя на домашнюю страницу, если нет доступа
     }
-  }, [userRoles, subdomain, navigate]);
+  }, [loading, userRoles, navigate]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Показываем индикатор загрузки
+  }
 
   return (
     <Routes>
       {/* Маршруты для клиента */}
-      {subdomain === "client" && userRoles.includes("client") && (
+      {userRoles.includes("client") && (
         <>
           <Route path="/" element={<Home />} />
           <Route
@@ -102,35 +94,7 @@ const App = () => {
           />
         </>
       )}
-
-      {/* Маршруты для администратора */}
-      {subdomain === "admin" && userRoles.includes("admin") && (
-        <>
-          <Route path="/" element={<AdminDashboard />}>
-            <Route index element={<AllRides />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </>
-      )}
-
-      {/* Маршруты для водителя */}
-      {subdomain === "driver" && userRoles.includes("driver") && (
-        <>
-          <Route path="/" element={<DriverDashboard />}>
-            <Route index element={<AllRidesDriver />} />
-            <Route
-              path="history"
-              element={<HistoryDriver phoneNumber={phoneNumber} />}
-            />
-            <Route
-              path="order/:id"
-              element={<Order phoneNumber={phoneNumber} />}
-            />
-          </Route>
-        </>
-      )}
-
-      {/* Общий fallback на случай, если поддомен не совпадает или у пользователя нет роли */}
+      {/* Общий fallback на случай, если у пользователя нет роли */}
       <Route path="*" element={<Home />} />
     </Routes>
   );
