@@ -58,7 +58,7 @@ const RideConfirmationPage = ({ phoneNumber }) => {
             <i className="fas fa-arrow-left"></i>
           </button>
         </div>
-        <div className="w-full h-64 mb-4">
+        <div className="w-full h-64 mb-4 relative">
           <MapContainer
             center={pickupCoordinates}
             zoom={12}
@@ -71,6 +71,7 @@ const RideConfirmationPage = ({ phoneNumber }) => {
               color="blue"
             />
           </MapContainer>
+          <div className="absolute right-0 bottom-0 w-full h-5 z-[1000] bg-white"></div>
         </div>
         <div className="px-4">
           <div className="text-lg font-semibold mb-2">Информация о поездке</div>

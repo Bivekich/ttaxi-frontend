@@ -4,7 +4,9 @@ import {
   Route,
   Routes,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
+import axios from "axios"; // Добавляем axios для запросов к серверу
 import Home from "./pages/client/Home";
 import TripPage from "./pages/client/TripPage";
 import RideConfirmationPage from "./pages/client/RideConfirmationPage";
@@ -25,10 +27,13 @@ const App = () => {
   const [phoneNumber, setPhoneNumber] = useState(
     localStorage.getItem("phoneNumber")
   );
+  const [userRole, setUserRole] = useState(null); // Роль пользователя
   const query = useQuery();
+  const navigate = useNavigate();
   const subdomain = window.location.hostname.split(".")[0]; // Получаем поддомен
 
   useEffect(() => {
+    // Если номер телефона уже сохранен
     if (!phoneNumber) {
       const phoneFromUrl = query.get("phoneNumber");
       if (phoneFromUrl) {
@@ -38,11 +43,45 @@ const App = () => {
         return "";
       }
     }
-  }, [query]);
+
+    // Если телефон есть, запрашиваем данные о пользователе
+    const fetchUserProfile = async () => {
+      try {
+        const response = await axios.get(
+          `https://api.24t-taxi.ru/api/user/profile/${phoneNumber}`
+        );
+        console.log(response);
+        const { type } = response.data; // Получаем роль пользователя (client, admin, driver)
+        setUserRole(type);
+      } catch (error) {
+        console.error("Ошибка при получении профиля пользователя:", error);
+      }
+    };
+
+    if (phoneNumber) {
+      fetchUserProfile();
+    }
+  }, [query, phoneNumber]);
+
+  // Проверяем, есть ли у пользователя права доступа к определенному поддомену
+  const hasAccess = (role) => {
+    if (subdomain === "client" && role === "client") return true;
+    if (subdomain === "admin" && role === "admin") return true;
+    if (subdomain === "driver" && role === "driver") return true;
+    return false;
+  };
+
+  // Если роль пользователя загружена и у него нет доступа, перенаправляем на домашнюю страницу
+  useEffect(() => {
+    if (userRole && !hasAccess(userRole)) {
+      navigate("/"); // Перенаправляем пользователя на домашнюю страницу, если нет доступа
+    }
+  }, [userRole, navigate]);
 
   return (
     <Routes>
-      {subdomain === "client" && (
+      {/* Маршруты для клиента */}
+      {subdomain === "client" && userRole === "client" && (
         <>
           <Route path="/" element={<Home />} />
           <Route
@@ -59,35 +98,35 @@ const App = () => {
           />
         </>
       )}
-      {subdomain === "admin" && (
+
+      {/* Маршруты для администратора */}
+      {subdomain === "admin" && userRole === "admin" && (
         <>
           <Route path="/" element={<AdminDashboard />}>
-            <Route index element={<AllRides />} />{" "}
-            {/* This will render AllRides when the path is exactly "/" */}
-            <Route path="settings" element={<Settings />} />{" "}
-            {/* This will render Settings when the path is "/settings" */}
+            <Route index element={<AllRides />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </>
       )}
-      {subdomain === "driver" && (
+
+      {/* Маршруты для водителя */}
+      {subdomain === "driver" && userRole === "driver" && (
         <>
-          {/* Другие маршруты для driver */}
           <Route path="/" element={<DriverDashboard />}>
-            <Route index element={<AllRidesDriver />} />{" "}
-            {/* This will render AllRides when the path is exactly "/" */}
+            <Route index element={<AllRidesDriver />} />
             <Route
               path="history"
               element={<HistoryDriver phoneNumber={phoneNumber} />}
-            />{" "}
-            {/* This will render Settings when the path is "/settings" */}
+            />
             <Route
               path="order/:id"
               element={<Order phoneNumber={phoneNumber} />}
-            />{" "}
+            />
           </Route>
         </>
       )}
-      {/* Общий fallback на случай, если поддомен не совпадает */}
+
+      {/* Общий fallback на случай, если поддомен не совпадает или у пользователя нет роли */}
       <Route path="*" element={<Home />} />
     </Routes>
   );

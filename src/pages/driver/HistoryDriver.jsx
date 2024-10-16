@@ -11,7 +11,7 @@ const HistoryDriver = ({ phoneNumber }) => {
     const fetchRides = async () => {
       try {
         const response = await axios.get(
-          `https://api.24t-taxi.ru/api/orders/all`
+          `https://api.24t-taxi.ru/api/orders/dget/${phoneNumber}`
         );
         console.log(response);
         setRides(response.data);

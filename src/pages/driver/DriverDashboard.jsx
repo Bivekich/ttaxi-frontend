@@ -18,7 +18,7 @@ const AdminDashboard = () => {
           <NavButton
             icon="fas fa-history"
             label="Мои поездки"
-            path="/settings"
+            path="/history"
           />
         </nav>
       </div>
