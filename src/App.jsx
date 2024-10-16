@@ -37,7 +37,7 @@ const App = () => {
       if (phoneNumber && userRoles.length === 0) {
         try {
           const response = await axios.get(
-            `http://localhost:3000/api/user/profile/${phoneNumber}`
+            `https://api.24t-taxi.ru/api/user/profile/${phoneNumber}`
           );
           const roles = response.data.map((role) => role.type); // Извлекаем роли
           setUserRoles(roles); // Сохраняем массив ролей пользователя
