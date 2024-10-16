@@ -13,19 +13,19 @@ export default defineConfig({
     proxy: {
       // Настройка для subdomain: admin.localhost
       "/admin": {
-        target: "http://admin.localhost:5713",
+        target: "https://admin.24t-taxi.ru",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/admin/, ""),
       },
       // Настройка для subdomain: client.localhost
       "/client": {
-        target: "http://client.localhost:5713",
+        target: "https://client.24t-taxi.ru",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/client/, ""),
       },
       // Настройка для subdomain: driver.localhost
       "/driver": {
-        target: "http://driver.localhost:5713",
+        target: "https://driver.24t-taxi.ru",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/driver/, ""),
       },
