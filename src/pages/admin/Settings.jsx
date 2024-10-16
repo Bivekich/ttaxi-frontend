@@ -10,7 +10,7 @@ const Settings = () => {
   const fetchPricePerMinute = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:3000/api/user/getPricePerMinute"
+        "https://api.24t-taxi.ru/api/user/getPricePerMinute"
       );
       console.log(response);
       if (response.status === 200) {
@@ -34,7 +34,7 @@ const Settings = () => {
     // Logic to save the price and phone number
     console.log("Saving settings:", { pricePerMinute, phoneNumber });
     const response = await axios.post(
-      "http://localhost:3000/api/user/changeAdmin",
+      "https://api.24t-taxi.ru/api/user/changeAdmin",
       {
         pricePerMinute: pricePerMinute,
         column: "price_per_minute",
@@ -54,7 +54,7 @@ const Settings = () => {
           phoneNumber: phoneNumber.replace("+", ""),
         });
         const response = await axios.post(
-          "http://localhost:3000/api/user/addUser",
+          "https://api.24t-taxi.ru/api/user/addUser",
           {
             phoneNumber: phoneNumber.replace("+", ""),
             status: "admin",
@@ -97,7 +97,7 @@ const Settings = () => {
           phoneNumber: phoneNumber.replace("+", ""),
         });
         const response = await axios.post(
-          "http://localhost:3000/api/user/addUser",
+          "https://api.24t-taxi.ru/api/user/addUser",
           {
             phoneNumber: phoneNumber.replace("+", ""),
             status: "driver",

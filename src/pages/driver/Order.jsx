@@ -29,7 +29,7 @@ const Order = ({ phoneNumber }) => {
     const fetchOrder = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/orders/order/${id}/${phoneNumber}`
+          `https://api.24t-taxi.ru/api/orders/order/${id}/${phoneNumber}`
         ); // Fetch order by ID
         setOrder(response.data); // Set the fetched data into state
 
@@ -51,7 +51,9 @@ const Order = ({ phoneNumber }) => {
   // Handle "Начать поездку" button click
   const handleStartTrip = async () => {
     try {
-      await axios.post(`http://localhost:3000/api/orders/set/${id}/start-trip`);
+      await axios.post(
+        `https://api.24t-taxi.ru/api/orders/set/${id}/start-trip`
+      );
       setOrder((prevOrder) => ({
         ...prevOrder,
         status: "В поездке",
@@ -67,7 +69,7 @@ const Order = ({ phoneNumber }) => {
   const handleEndTrip = async () => {
     try {
       const response = await axios.post(
-        `http://localhost:3000/api/orders/set/${id}/end-trip`
+        `https://api.24t-taxi.ru/api/orders/set/${id}/end-trip`
       );
       setOrder((prevOrder) => ({
         ...prevOrder,

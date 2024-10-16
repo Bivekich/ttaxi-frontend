@@ -11,7 +11,7 @@ const AllRides = () => {
     const fetchRides = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/orders/all`
+          `https://api.24t-taxi.ru/api/orders/all`
         );
         setRides(response.data);
       } catch (error) {
@@ -93,7 +93,7 @@ const AllRides = () => {
 const RideList = ({ rides }) => {
   const cancelOrder = async (id) => {
     try {
-      await axios.get(`http://localhost:3000/api/orders/cancel/${id}`);
+      await axios.get(`https://api.24t-taxi.ru/api/orders/cancel/${id}`);
       alert("Заказ успешно отменен.");
       window.location.reload(); // Перезагрузим список заказов после отмены
     } catch (error) {
