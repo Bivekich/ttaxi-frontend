@@ -27,34 +27,38 @@ const App = () => {
   const [phoneNumber, setPhoneNumber] = useState(
     localStorage.getItem("phoneNumber")
   );
-  const [userRole, setUserRole] = useState(null); // Роль пользователя
+  // const [userRoles, setUserRoles] = useState(
+  //   JSON.parse(localStorage.getItem("userRoles")) || [] // Загружаем роли из localStorage, если они есть
+  // );
+  const [userRoles, setUserRoles] = useState(
+    [] // Загружаем роли из localStorage, если они есть
+  );
   const query = useQuery();
   const navigate = useNavigate();
   const subdomain = window.location.hostname.split(".")[0]; // Получаем поддомен
 
   useEffect(() => {
-    // Если номер телефона уже сохранен
-    if (!phoneNumber) {
-      const phoneFromUrl = query.get("phoneNumber");
-      if (phoneFromUrl) {
-        setPhoneNumber(phoneFromUrl);
-        localStorage.setItem("phoneNumber", phoneFromUrl);
-      } else {
-        return "";
-      }
+    const phoneFromUrl = query.get("phoneNumber");
+    if (phoneFromUrl) {
+      setPhoneNumber(phoneFromUrl);
+      localStorage.setItem("phoneNumber", phoneFromUrl);
+      // localStorage.setItem("userRoles", JSON.stringify(["client"])); // Сохраняем роли в localStorage
     }
 
-    // Если телефон есть, запрашиваем данные о пользователе
+    // Если телефон есть, но роли пользователя не сохранены в localStorage, запрашиваем данные о пользователе
     const fetchUserProfile = async () => {
-      try {
-        const response = await axios.get(
-          `https://api.24t-taxi.ru/api/user/profile/${phoneNumber}`
-        );
-        console.log(response);
-        const { type } = response.data; // Получаем роль пользователя (client, admin, driver)
-        setUserRole(type);
-      } catch (error) {
-        console.error("Ошибка при получении профиля пользователя:", error);
+      if (phoneNumber && userRoles.length === 0) {
+        try {
+          const response = await axios.get(
+            `http://localhost:3000/api/user/profile/${phoneNumber}`
+          );
+          console.log(response);
+          const roles = response.data.map((role) => role.type); // Извлекаем роли в массив
+          setUserRoles(roles); // Сохраняем массив ролей пользователя
+          // localStorage.setItem("userRoles", JSON.stringify(roles)); // Сохраняем роли в localStorage
+        } catch (error) {
+          console.error("Ошибка при получении профиля пользователя:", error);
+        }
       }
     };
 
@@ -63,25 +67,25 @@ const App = () => {
     }
   }, [query, phoneNumber]);
 
-  // Проверяем, есть ли у пользователя права доступа к определенному поддомену
-  const hasAccess = (role) => {
-    if (subdomain === "client" && role === "client") return true;
-    if (subdomain === "admin" && role === "admin") return true;
-    if (subdomain === "driver" && role === "driver") return true;
+  // Проверяем, есть ли у пользователя доступ к определенному поддомену
+  const hasAccess = (subdomain, roles) => {
+    if (subdomain === "client" && roles.includes("client")) return true;
+    if (subdomain === "admin" && roles.includes("admin")) return true;
+    if (subdomain === "driver" && roles.includes("driver")) return true;
     return false;
   };
 
-  // Если роль пользователя загружена и у него нет доступа, перенаправляем на домашнюю страницу
+  // Если роли пользователя загружены и у него нет доступа, перенаправляем на домашнюю страницу
   useEffect(() => {
-    if (userRole && !hasAccess(userRole)) {
+    if (userRoles.length > 0 && !hasAccess(subdomain, userRoles)) {
       navigate("/"); // Перенаправляем пользователя на домашнюю страницу, если нет доступа
     }
-  }, [userRole, navigate]);
+  }, [userRoles, subdomain, navigate]);
 
   return (
     <Routes>
       {/* Маршруты для клиента */}
-      {subdomain === "client" && userRole === "client" && (
+      {subdomain === "client" && userRoles.includes("client") && (
         <>
           <Route path="/" element={<Home />} />
           <Route
@@ -100,7 +104,7 @@ const App = () => {
       )}
 
       {/* Маршруты для администратора */}
-      {subdomain === "admin" && userRole === "admin" && (
+      {subdomain === "admin" && userRoles.includes("admin") && (
         <>
           <Route path="/" element={<AdminDashboard />}>
             <Route index element={<AllRides />} />
@@ -110,7 +114,7 @@ const App = () => {
       )}
 
       {/* Маршруты для водителя */}
-      {subdomain === "driver" && userRole === "driver" && (
+      {subdomain === "driver" && userRoles.includes("driver") && (
         <>
           <Route path="/" element={<DriverDashboard />}>
             <Route index element={<AllRidesDriver />} />
