@@ -1,7 +1,7 @@
-import Header from "../components/Header";
-import CategoryCard from "../components/CategoryCard";
-import NavButton from "../components/NavButton";
-import Banner from "../components/Banner";
+import Header from "../../components/Header";
+import CategoryCard from "../../components/CategoryCard";
+import NavButton from "../../components/NavButton";
+import Banner from "../../components/Banner";
 
 const Home = () => {
   return (

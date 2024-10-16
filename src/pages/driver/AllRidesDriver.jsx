@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-const MyRidesPage = ({ phoneNumber }) => {
+const AllRidesDriver = () => {
   const [rides, setRides] = useState([]);
   const [activeTab, setActiveTab] = useState("active");
   const navigate = useNavigate();
@@ -11,20 +12,20 @@ const MyRidesPage = ({ phoneNumber }) => {
     const fetchRides = async () => {
       try {
         const response = await axios.get(
-          `https://api.24t-taxi.ru/api/orders/${phoneNumber}`
+          `http://localhost:3000/api/orders/all`
         );
+        console.log(response);
         setRides(response.data);
       } catch (error) {
         console.error("Ошибка при получении поездок:", error);
       }
     };
+    setActiveTab("active");
     fetchRides();
-  }, [phoneNumber]);
-
+  }, []);
   const filterRides = (status) => {
     return rides.filter((ride) => ride.status.toLowerCase() === status);
   };
-
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col justify-between">
       <div className="bg-white shadow-md rounded-md p-4 mb-4">
@@ -35,42 +36,9 @@ const MyRidesPage = ({ phoneNumber }) => {
           >
             <i className="fas fa-arrow-left"></i>
           </button>
-          <h2 className="text-xl font-semibold">Мои поездки</h2>
+          <h2 className="text-xl font-semibold">Все поездки</h2>
         </div>
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeTab === "active" ? "bg-black text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("active")}
-          >
-            Заказанные
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeTab === "pending" ? "bg-black text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("pending")}
-          >
-            В поездке
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeTab === "complete" ? "bg-black text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("complete")}
-          >
-            Завершенные
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeTab === "cancel" ? "bg-black text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("cancel")}
-          >
-            Отмененные
-          </button>
-        </div>
+
         <div className="h-[60vh] overflow-y-auto">
           {activeTab === "active" && (
             <RideList rides={filterRides("заказан")} />
@@ -126,10 +94,16 @@ const RideList = ({ rides }) => {
               Завершено: {new Date(ride.completed_at).toLocaleString()}
             </div>
           )}
+          <Link
+            to={`/order/${ride.id}`}
+            className="block py-2 rounded-md bg-black text-white w-full text-center"
+          >
+            Взять заказ
+          </Link>
         </div>
       ))}
     </div>
   );
 };
 
-export default MyRidesPage;
+export default AllRidesDriver;

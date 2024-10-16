@@ -30,7 +30,7 @@ const RideConfirmationPage = ({ phoneNumber }) => {
 
     try {
       const response = await axios.post(
-        "https://api.24t-taxi.ru/api/orders",
+        "http://localhost:3000/api/orders",
         orderData
       );
 
